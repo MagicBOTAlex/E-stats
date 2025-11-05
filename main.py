@@ -20,7 +20,7 @@ df["Dose_36h_avg"] = df["Dose"].rolling("36H", min_periods=1).mean()
 # Plot
 plt.figure(figsize=(10, 5))
 plt.plot(df.index, df["Dose"], label="Dose", alpha=0.3)
-plt.plot(df.index, df["Dose_36h_avg"], label="36h rolling avg")
+plt.plot(df.index, df["Dose_36h_avg"], label="Theoretical average pg/mg")
 
 for x, y in zip(df.index, df["Dose_36h_avg"]):
     plt.text(x, y, f"{y:.1f}", fontsize=8,
