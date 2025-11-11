@@ -61,7 +61,7 @@ plt.text(plt.xlim()[1], 6, '200pg/ml (90%)',
 goal = 150/30
 plt.axhline(y=goal, color='blue', linestyle='-', linewidth=1)
 plt.text(plt.xlim()[1], goal, 'Goal\'ish (74%)',
-         color='blue', va='bottom', ha='right')
+         color='lightgrey', va='bottom', ha='right')
 
 plt.axhline(y=3, color='orange', linestyle='--', linewidth=1)
 plt.text(plt.xlim()[1], 3, '100pg/ml (58%)',
@@ -71,7 +71,7 @@ plt.axhline(y=1.5, color='green', linestyle='--', linewidth=1)
 plt.text(plt.xlim()[1], 1.5, '50pg/ml (24%)',
          color='green', va='bottom', ha='right')
 
-# ---- NEW: last 2 intercepts of Amount with goal'ish ----
+# ---- NEW: all intercepts of Amount with goal'ish ----
 y = df_sim["Amount"].values
 x = df_sim.index.values
 diff = y - goal
@@ -82,8 +82,7 @@ xs_int = []
 ys_int = []
 
 if len(cross_idx) > 0:
-    last_two = cross_idx[-2:] if len(cross_idx) >= 2 else cross_idx
-    for idx in last_two:
+    for idx in cross_idx:
         x0, x1 = x[idx], x[idx + 1]
         y0, y1 = y[idx], y[idx + 1]
         t = (goal - y0) / (y1 - y0)  # linear interpolation
@@ -93,28 +92,29 @@ if len(cross_idx) > 0:
         xs_int.append(xi)
         ys_int.append(yi)
 
-    # plot the 2 intersection points
+    # plot all intersection points
     plt.scatter(xs_int, ys_int, s=60, marker='o',
                 edgecolors='black', facecolors='none',
-                label="Last goal'ish intercepts")
+                label="Goal'ish intercepts")
 
-    if len(xs_int) == 2:
-        # distance only along x axis (hours)
-        dx = xs_int[1] - xs_int[0]
+    # label each interval between neighboring intercepts (x-axis length)
+    fem = True
+    for i in range(len(xs_int) - 1):
+        dx = xs_int[i+1] - xs_int[i]
         dx_arr = np.array(dx)
 
         if np.issubdtype(dx_arr.dtype, np.timedelta64):
             length_hours = dx / np.timedelta64(1, 'h')
         else:
-            # assume x is already in hours
+            # assume numeric in hours
             length_hours = dx
 
-        # midpoint between the two dots
-        x_mid = xs_int[0] + dx / 2
-        y_mid = goal  # same horizontal line as the dots
+        x_mid = xs_int[i] + dx / 2
+        y_mid = goal
 
         plt.text(x_mid, y_mid, f"{length_hours:.1f} h",
-                 ha="center", va="bottom", fontsize=8)
+                 ha="center", va="bottom", fontsize=8, color=("pink" if fem else "lightblue"))
+        fem = not fem
 # ---- END NEW ----
 
 
@@ -122,5 +122,8 @@ plt.xlabel("Time")
 plt.ylabel("Dose / Amount (same units)")
 plt.legend()
 plt.tight_layout()
-plt.savefig("graph.jpg", dpi=100)
-plt.show()
+# plt.savefig("graph.jpg", dpi=100)
+plt.savefig("graph.png", dpi=100, transparent=True)
+# plt.show()
+
+print("[ OK ] Saved plot to current dir")
