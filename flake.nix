@@ -29,6 +29,7 @@
             python-multipart
             jinja2
             python-jose
+            sympy
             passlib
             bcrypt
             python-dotenv
