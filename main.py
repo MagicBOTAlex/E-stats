@@ -11,11 +11,19 @@ year = datetime.now().year
 df["Date"] = pd.to_datetime(df["Date"].astype(str) + f"/{year}",
                             format="%d/%m/%Y")
 
-# Assume dose taken at 08:00 each day (change if needed)
-df["Date"] = df["Date"] + pd.Timedelta(hours=8)
-
 # pg/ml -> mg-ish
 df["Dose"] = df["Dose"] / 30.0
+
+# --- split each day's dose into 2 halves at 11:00 and 23:00 ---
+df11 = df.copy()
+df11["Date"] = df11["Date"] + pd.Timedelta(hours=11)
+df11["Dose"] = df11["Dose"] / 2
+
+df23 = df.copy()
+df23["Date"] = df23["Date"] + pd.Timedelta(hours=23)
+df23["Dose"] = df23["Dose"] / 2
+
+df = pd.concat([df11, df23], ignore_index=True)
 
 df = df.sort_values("Date").set_index("Date")
 
@@ -47,8 +55,9 @@ df_sim = pd.DataFrame({
     "Amount": amount,
 }, index=full_index)
 
+
 # Plot
-plt.figure(figsize=(20, 5))
+plt.figure(figsize=(50, 5))
 
 # simulated concentration curve
 plt.plot(df_sim.index, df_sim["Amount"],
@@ -70,6 +79,15 @@ plt.text(plt.xlim()[1], 3, '100pg/ml (58%)',
 plt.axhline(y=1.5, color='green', linestyle='--', linewidth=1)
 plt.text(plt.xlim()[1], 1.5, '50pg/ml (24%)',
          color='green', va='bottom', ha='right')
+
+# dashed lightgrey line every 00:00
+midnights = pd.date_range(
+    df_sim.index.min().normalize(),
+    df_sim.index.max().normalize(),
+    freq="D"
+)
+for t in midnights:
+    plt.axvline(t, color="lightgrey", linestyle="--", linewidth=0.5)
 
 # ---- NEW: all intercepts of Amount with goal'ish ----
 y = df_sim["Amount"].values
